@@ -32,7 +32,7 @@ import zipkin.Codec;
 import zipkin.Span;
 import zipkin.internal.ApplyTimestampAndDuration;
 import zipkin.internal.V2SpanConverter;
-import zipkin.internal.v2.codec.SpanBytesCodec;
+import zipkin2.codec.SpanBytesCodec;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;

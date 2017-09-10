@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import zipkin.SpanDecoder;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.codec.SpanBytesCodec;
+import zipkin2.Span;
+import zipkin2.codec.SpanBytesCodec;
 
 /** Decodes a span from zipkin v2 encoding */
 public final class V2JsonSpanDecoder implements SpanDecoder {

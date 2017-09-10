@@ -22,10 +22,10 @@ import zipkin.internal.V2Collector;
 import zipkin.internal.V2JsonSpanDecoder;
 import zipkin.internal.V2SpanConverter;
 import zipkin.internal.V2StorageComponent;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.codec.SpanBytesCodec;
 import zipkin.storage.Callback;
 import zipkin.storage.StorageComponent;
+import zipkin2.Span;
+import zipkin2.codec.SpanBytesCodec;
 
 import static zipkin.internal.DetectingSpanDecoder.detectFormat;
 import static zipkin.internal.Util.checkNotNull;
@@ -92,7 +92,7 @@ public class Collector
         builder.logger,
         builder.metrics,
         builder.sampler,
-        ((V2StorageComponent) storage).internalDelegate()
+        ((V2StorageComponent) storage).delegate()
       );
     } else {
       storage2 = null;

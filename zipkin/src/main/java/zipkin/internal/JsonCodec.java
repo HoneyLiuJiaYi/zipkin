@@ -16,7 +16,9 @@ package zipkin.internal;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.MalformedJsonException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -28,22 +30,21 @@ import zipkin.Codec;
 import zipkin.DependencyLink;
 import zipkin.Endpoint;
 import zipkin.Span;
-import zipkin.internal.v2.codec.DependencyLinkBytesCodec;
-import zipkin.internal.v2.internal.Buffer;
-import zipkin.internal.v2.internal.JsonCodec.JsonReaderAdapter;
+import zipkin2.codec.DependencyLinkBytesCodec;
+import zipkin2.internal.Buffer;
 
 import static java.lang.Double.doubleToRawLongBits;
+import static java.lang.String.format;
 import static zipkin.internal.Util.UTF_8;
 import static zipkin.internal.Util.lowerHexToUnsignedLong;
 import static zipkin.internal.Util.writeBase64Url;
-import static zipkin.internal.v2.internal.Buffer.asciiSizeInBytes;
-import static zipkin.internal.v2.internal.JsonCodec.read;
-import static zipkin.internal.v2.internal.JsonCodec.readList;
-import static zipkin.internal.v2.internal.JsonCodec.write;
-import static zipkin.internal.v2.internal.JsonCodec.writeList;
-import static zipkin.internal.v2.internal.JsonCodec.writeNestedList;
-import static zipkin.internal.v2.internal.JsonEscaper.jsonEscape;
-import static zipkin.internal.v2.internal.JsonEscaper.jsonEscapedSizeInBytes;
+import static zipkin2.internal.Buffer.asciiSizeInBytes;
+import static zipkin2.internal.JsonCodec.write;
+import static zipkin2.internal.JsonCodec.writeList;
+import static zipkin2.internal.JsonCodec.writeNestedList;
+import static zipkin2.internal.JsonEscaper.jsonEscape;
+import static zipkin2.internal.JsonEscaper.jsonEscapedSizeInBytes;
+import static zipkin2.internal.JsonEscaper.needsJsonEscaping;
 
 /**
  * This explicitly constructs instances of model classes via manual parsing for a number of
@@ -85,7 +86,7 @@ public final class JsonCodec implements Codec {
 
   static final Buffer.Writer<Endpoint> ENDPOINT_WRITER = new Buffer.Writer<Endpoint>() {
     @Override public int sizeInBytes(Endpoint v) {
-      zipkin.internal.v2.Endpoint value = V2SpanConverter.fromEndpoint(v);
+      zipkin2.Endpoint value = V2SpanConverter.fromEndpoint(v);
       int sizeInBytes = 17; // {"serviceName":""
       if (value.serviceName() != null) {
         sizeInBytes += jsonEscapedSizeInBytes(value.serviceName());
@@ -109,7 +110,7 @@ public final class JsonCodec implements Codec {
     }
 
     @Override public void write(Endpoint v, Buffer b) {
-      zipkin.internal.v2.Endpoint value = V2SpanConverter.fromEndpoint(v);
+      zipkin2.Endpoint value = V2SpanConverter.fromEndpoint(v);
       b.writeAscii("{\"serviceName\":\"");
       if (value.serviceName() != null) {
         b.writeUtf8(jsonEscape(value.serviceName()));
@@ -562,12 +563,12 @@ public final class JsonCodec implements Codec {
 
   static final Buffer.Writer<DependencyLink> DEPENDENCY_LINK_WRITER = new Buffer.Writer<DependencyLink>() {
     @Override public int sizeInBytes(DependencyLink v) {
-      zipkin.internal.v2.DependencyLink value = V2SpanConverter.fromLink(v);
+      zipkin2.DependencyLink value = V2SpanConverter.fromLink(v);
       return DependencyLinkBytesCodec.JSON.sizeInBytes(value);
     }
 
     @Override public void write(DependencyLink v, Buffer b) {
-      zipkin.internal.v2.DependencyLink value = V2SpanConverter.fromLink(v);
+      zipkin2.DependencyLink value = V2SpanConverter.fromLink(v);
       b.write(DependencyLinkBytesCodec.JSON.encode(value));
     }
 
@@ -628,21 +629,38 @@ public final class JsonCodec implements Codec {
     return writeList(STRING_WRITER, value);
   }
 
-  static boolean needsJsonEscaping(byte[] v) {
-    for (int i = 0; i < v.length; i++) {
-      int current = v[i] & 0xFF;
-      if (i >= 2 &&
-        // Is this the end of a u2028 or u2028 UTF-8 codepoint?
-        // 0xE2 0x80 0xA8 == u2028; 0xE2 0x80 0xA9 == u2028
-        (current == 0xA8 || current == 0xA9)
-        && (v[i - 1] & 0xFF) == 0x80
-        && (v[i - 2] & 0xFF) == 0xE2) {
-        return true;
-      } else if (current < 0x80 && REPLACEMENT_CHARS[current] != null) {
-        return true;
-      }
+  public interface JsonReaderAdapter<T> {
+    T fromJson(JsonReader reader) throws IOException;
+  }
+
+  public static <T> T read(JsonReaderAdapter<T> adapter, byte[] bytes) {
+    if (bytes.length == 0) throw new IllegalArgumentException("Empty input reading " + adapter);
+    try {
+      return adapter.fromJson(jsonReader(bytes));
+    } catch (Exception e) {
+      throw exceptionReading(adapter.toString(), bytes, e);
     }
-    return false; // must be a string we don't need to escape.
+  }
+
+  public static <T> List<T> readList(JsonReaderAdapter<T> adapter, byte[] bytes) {
+    if (bytes.length == 0) {
+      throw new IllegalArgumentException("Empty input reading List<" + adapter + ">");
+    }
+    JsonReader reader = jsonReader(bytes);
+    List<T> result;
+    try {
+      reader.beginArray();
+      result = reader.hasNext() ? new LinkedList<>() : Collections.emptyList();
+      while (reader.hasNext()) result.add(adapter.fromJson(reader));
+      reader.endArray();
+      return result;
+    } catch (Exception e) {
+      throw exceptionReading("List<" + adapter + ">", bytes, e);
+    }
+  }
+
+  static JsonReader jsonReader(byte[] bytes) {
+    return new JsonReader(new InputStreamReader(new ByteArrayInputStream(bytes), UTF_8));
   }
 
   static final byte[] HEX_DIGITS =
@@ -664,20 +682,10 @@ public final class JsonCodec implements Codec {
     writeHexByte(b, (byte) (v & 0xff));
   }
 
-  // copied from JsonEscaper
-  private static final String[] REPLACEMENT_CHARS;
-
-  static {
-    REPLACEMENT_CHARS = new String[128];
-    for (int i = 0; i <= 0x1f; i++) {
-      REPLACEMENT_CHARS[i] = String.format("\\u%04x", (int) i);
-    }
-    REPLACEMENT_CHARS['"'] = "\\\"";
-    REPLACEMENT_CHARS['\\'] = "\\\\";
-    REPLACEMENT_CHARS['\t'] = "\\t";
-    REPLACEMENT_CHARS['\b'] = "\\b";
-    REPLACEMENT_CHARS['\n'] = "\\n";
-    REPLACEMENT_CHARS['\r'] = "\\r";
-    REPLACEMENT_CHARS['\f'] = "\\f";
+  static IllegalArgumentException exceptionReading(String type, byte[] bytes, Exception e) {
+    String cause = e.getMessage() == null ? "Error" : e.getMessage();
+    if (cause.indexOf("malformed") != -1) cause = "Malformed";
+    String message = format("%s reading %s from json: %s", cause, type, new String(bytes, UTF_8));
+    throw new IllegalArgumentException(message, e);
   }
 }

@@ -34,7 +34,7 @@ import zipkin.BinaryAnnotation;
 import zipkin.Constants;
 import zipkin.Endpoint;
 import zipkin.TraceKeys;
-import zipkin.internal.v2.Span;
+import zipkin2.Span;
 import zipkin.internal.V2SpanConverter;
 import zipkin.internal.Util;
 

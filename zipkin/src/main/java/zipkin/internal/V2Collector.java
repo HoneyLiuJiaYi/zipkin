@@ -18,10 +18,10 @@ import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import zipkin.collector.CollectorMetrics;
 import zipkin.collector.CollectorSampler;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.codec.BytesDecoder;
-import zipkin.internal.v2.storage.StorageComponent;
 import zipkin.storage.Callback;
+import zipkin2.Span;
+import zipkin2.codec.BytesDecoder;
+import zipkin2.storage.StorageComponent;
 
 import static zipkin.internal.Util.checkNotNull;
 

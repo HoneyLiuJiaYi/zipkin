@@ -40,9 +40,9 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import zipkin.Codec;
 import zipkin.Endpoint;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.codec.SpanBytesCodec;
-import zipkin.internal.v2.codec.SpanBytesEncoder;
+import zipkin2.Span;
+import zipkin2.codec.SpanBytesCodec;
+import zipkin2.codec.SpanBytesEncoder;
 
 /**
  * This compares the speed of the bundled java codec with the approach used in the scala

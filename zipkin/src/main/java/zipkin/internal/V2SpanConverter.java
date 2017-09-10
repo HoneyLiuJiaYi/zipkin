@@ -24,10 +24,10 @@ import javax.annotation.Nullable;
 import zipkin.Annotation;
 import zipkin.BinaryAnnotation;
 import zipkin.Constants;
-import zipkin.internal.v2.DependencyLink;
-import zipkin.internal.v2.Endpoint;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.Span.Kind;
+import zipkin2.DependencyLink;
+import zipkin2.Endpoint;
+import zipkin2.Span;
+import zipkin2.Span.Kind;
 
 import static zipkin.BinaryAnnotation.Type.BOOL;
 import static zipkin.Constants.CLIENT_ADDR;
@@ -332,7 +332,7 @@ public final class V2SpanConverter {
     boolean wroteEndpoint = false;
 
     for (int i = 0, length = in.annotations().size(); i < length; i++) {
-      zipkin.internal.v2.Annotation input = in.annotations().get(i);
+      zipkin2.Annotation input = in.annotations().get(i);
       Annotation a = Annotation.create(input.timestamp(), input.value(), local);
       if (a.value.length() == 2) {
         if (a.value.equals(Constants.CLIENT_SEND)) {
@@ -477,7 +477,7 @@ public final class V2SpanConverter {
     return result.build();
   }
 
-  static List<zipkin.Span> toSpans(List<zipkin.internal.v2.Span> spans) {
+  static List<zipkin.Span> toSpans(List<Span> spans) {
     if (spans.isEmpty()) return Collections.emptyList();
     int length = spans.size();
     List<zipkin.Span> span1s = new ArrayList<>(length);

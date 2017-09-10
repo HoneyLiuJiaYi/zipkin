@@ -33,13 +33,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import zipkin.internal.V2StorageComponent;
-import zipkin.internal.v2.Call;
-import zipkin.internal.v2.DependencyLink;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.codec.DependencyLinkBytesCodec;
-import zipkin.internal.v2.codec.SpanBytesCodec;
-import zipkin.internal.v2.storage.QueryRequest;
-import zipkin.internal.v2.storage.StorageComponent;
+import zipkin2.Call;
+import zipkin2.DependencyLink;
+import zipkin2.Span;
+import zipkin2.codec.DependencyLinkBytesCodec;
+import zipkin2.codec.SpanBytesCodec;
+import zipkin2.storage.QueryRequest;
+import zipkin2.storage.StorageComponent;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 

@@ -22,10 +22,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import zipkin.internal.v2.Endpoint;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.Span.Kind;
-import zipkin.internal.v2.codec.SpanBytesCodec;
+import zipkin2.Endpoint;
+import zipkin2.Span;
+import zipkin2.Span.Kind;
+import zipkin2.codec.SpanBytesCodec;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;

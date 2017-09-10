@@ -21,8 +21,8 @@ import zipkin.BinaryAnnotation.Type;
 import zipkin.Constants;
 import zipkin.Endpoint;
 import zipkin.TraceKeys;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.Span.Kind;
+import zipkin2.Span;
+import zipkin2.Span.Kind;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static zipkin.Constants.LOCAL_COMPONENT;

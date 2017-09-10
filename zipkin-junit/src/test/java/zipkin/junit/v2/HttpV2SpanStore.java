@@ -22,13 +22,13 @@ import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import zipkin.internal.v2.Call;
-import zipkin.internal.v2.DependencyLink;
-import zipkin.internal.v2.Span;
-import zipkin.internal.v2.codec.DependencyLinkBytesCodec;
-import zipkin.internal.v2.codec.SpanBytesCodec;
-import zipkin.internal.v2.storage.QueryRequest;
-import zipkin.internal.v2.storage.SpanStore;
+import zipkin2.Call;
+import zipkin2.DependencyLink;
+import zipkin2.Span;
+import zipkin2.codec.DependencyLinkBytesCodec;
+import zipkin2.codec.SpanBytesCodec;
+import zipkin2.storage.QueryRequest;
+import zipkin2.storage.SpanStore;
 
 /** Implements the span store interface by forwarding requests over http. */
 final class HttpV2SpanStore implements SpanStore {

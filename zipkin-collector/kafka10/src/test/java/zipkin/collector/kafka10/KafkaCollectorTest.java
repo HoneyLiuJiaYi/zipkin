@@ -39,7 +39,7 @@ import zipkin.collector.InMemoryCollectorMetrics;
 import zipkin.collector.kafka10.KafkaCollector.Builder;
 import zipkin.internal.ApplyTimestampAndDuration;
 import zipkin.internal.V2SpanConverter;
-import zipkin.internal.v2.codec.SpanBytesEncoder;
+import zipkin2.codec.SpanBytesEncoder;
 import zipkin.storage.AsyncSpanConsumer;
 import zipkin.storage.AsyncSpanStore;
 import zipkin.storage.SpanStore;
